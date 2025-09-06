@@ -8,6 +8,10 @@ from helper_functions import split_nodes_image
 from helper_functions import split_nodes_link
 from helper_functions import text_to_textnodes
 
+from markdown import BlockType
+from markdown import markdown_to_blocks
+from markdown import block_to_blocktype
+
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -142,6 +146,119 @@ class TestTextNode(unittest.TestCase):
                     TextNode("link", TextType.LINK, "https://boot.dev"),
                 ]
         self.assertListEqual(nodes, check)
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_markdown_to_blocks_more_spaces(self):
+        md = """
+This is **bolded** paragraph
+
+
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+
+
+
+
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_block_to_blocktype_header(self):
+        md = "#### Header"
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.HEADING)
+
+    def test_block_to_blocktype_none_header(self):
+        md = "########## Header too long"
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.PARAGRAPH)
+
+    def test_block_to_blocktype_code(self):
+        md = "```This is a code block```"
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.CODE)
+
+    def test_block_to_blocktype_not_code(self):
+        md = "```This is not a code block"
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.PARAGRAPH)
+
+    def test_block_to_blocktype_quote(self):
+        md = """>This is a quote
+        >Multiple
+        >lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.QUOTE)
+
+    def test_block_to_blocktype_not_quote(self):
+        md = """>This is not
+        a quote
+        >Multiple
+        >lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.PARAGRAPH)
+
+    def test_block_to_blocktype_un_list(self):
+        md = """- This is a list
+        - Multiple
+        - lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.UNORDERED_LIST)
+
+    def test_block_to_blocktype_not_un_list(self):
+        md = """- This is not
+        a list
+        - Multiple
+        - lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.PARAGRAPH)
+
+    def test_block_to_blocktype_ord_list(self):
+        md = """1. This is a list
+        2. Multiple
+        3. lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.ORDERED_LIST)
+
+    def test_block_to_blocktype_not_ord_list(self):
+        md = """1. This is not a list
+        4. Multiple
+        3. lines"""
+        type = block_to_blocktype(md)
+        self.assertEqual(type, BlockType.PARAGRAPH)
+
+
 
 
 if __name__ == "__main__":
