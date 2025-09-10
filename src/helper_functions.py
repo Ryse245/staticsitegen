@@ -1,4 +1,6 @@
 import re
+import os
+import shutil
 from textnode import TextNode
 from textnode import TextType
 
@@ -65,11 +67,36 @@ def split_nodes_link(old_nodes: list[TextNode]):
 
 
     
-def text_to_textnodes(text):
-    new_nodes = [TextNode(text, TextType.TEXT)]
+def text_to_textnodes(text: str):
+    final_text = text.strip()
+    final_text = final_text.strip("\n")
+    final_text = final_text.replace("\n", " ")
+
+    new_nodes = [TextNode(final_text, TextType.TEXT)]
     new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
     new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
     new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
     new_nodes = split_nodes_image(new_nodes)
     new_nodes = split_nodes_link(new_nodes)
     return new_nodes
+
+def copy_directory(source, destination):
+    abs_source = os.path.abspath(source)
+    abs_dest = os.path.abspath(destination)
+    if not os.path.exists(abs_source):
+        raise Exception("Directory not found")
+    shutil.rmtree(abs_dest)
+    os.mkdir(abs_dest)
+    copy_directory_rec(abs_source, abs_source, abs_dest)
+
+
+def copy_directory_rec(current_path, source, destination):
+    for item in os.listdir(current_path):
+        current_item = os.path.join(current_path, item)
+        if os.path.isdir(current_item):
+            copy_directory_rec(current_item, source, destination)
+        elif os.path.isfile(current_item):
+            rel_path = os.path.relpath(current_path, source)
+            dest_path = os.path.join(destination, rel_path)
+            os.makedirs(dest_path, 511, True)
+            shutil.copy(current_item, dest_path)

@@ -1,4 +1,11 @@
 from textnode import *
+from markdown import markdown_to_blocks
+from markdown import block_to_blocktype
+from markdown import get_heading_count
+from markdown import BlockType
+from markdown import trim_markdown_block_specifiers
+
+from helper_functions import text_to_textnodes
 
 class HTMLNode:
     def __init__(self, tag = None, value = None, children = None, props = None):
@@ -64,3 +71,46 @@ def text_node_to_html_node(text_node: TextNode):
             return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
         case _:
             raise Exception("Node type not found")
+        
+def block_type_to_html_node(block_type: BlockType, markdown_block: str, header_count = None):
+    match block_type:
+        case BlockType.PARAGRAPH:
+            return ParentNode("p", [])
+        case BlockType.HEADING:
+            header_tag = "h" + str(get_heading_count(markdown_block))
+            return ParentNode(header_tag, [])
+        case BlockType.CODE:
+            return ParentNode("pre", [])
+        case BlockType.QUOTE:
+            return ParentNode("blockquote", [])
+        case BlockType.UNORDERED_LIST:
+            return ParentNode("ul", [])
+        case BlockType.ORDERED_LIST:
+            return ParentNode("ol", [])
+        case _:
+            raise Exception("Block type not found")
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    block_nodes = []
+    for block in blocks:
+        type = block_to_blocktype(block)
+        trimmed_block = trim_markdown_block_specifiers(block, type)
+        node = None
+        if type == BlockType.HEADING:
+            node = block_type_to_html_node(type, trimmed_block, get_heading_count(block))
+        else:
+            node = block_type_to_html_node(type, trimmed_block)
+        if type != BlockType.CODE:
+            children = text_to_textnodes(trimmed_block)
+            html_children = []
+            for child in children:
+                html_children.append(text_node_to_html_node(child))
+            node.children = html_children
+        else:
+            child = TextNode(trimmed_block, TextType.CODE)
+            node.children = [text_node_to_html_node(child)]
+        block_nodes.append(node)
+    return ParentNode("div", block_nodes)
+
+
