@@ -95,20 +95,25 @@ def markdown_to_html_node(markdown):
     block_nodes = []
     for block in blocks:
         type = block_to_blocktype(block)
-        trimmed_block = trim_markdown_block_specifiers(block, type)
         node = None
         if type == BlockType.HEADING:
-            node = block_type_to_html_node(type, trimmed_block, get_heading_count(block))
+            node = block_type_to_html_node(type, block, get_heading_count(block))
         else:
-            node = block_type_to_html_node(type, trimmed_block)
+            node = block_type_to_html_node(type, block)
         if type != BlockType.CODE:
-            children = text_to_textnodes(trimmed_block)
+            trimmed_block = trim_markdown_block_specifiers(block, type)
             html_children = []
-            for child in children:
-                html_children.append(text_node_to_html_node(child))
+            for line in trimmed_block.split("\n"):
+                children = text_to_textnodes(line)
+                for child in children:
+                    if len(child.text.strip()) != 0:
+                        if type == BlockType.UNORDERED_LIST or type == BlockType.ORDERED_LIST:
+                            html_children.append(ParentNode("li",[text_node_to_html_node(child)]))
+                        else:
+                            html_children.append(text_node_to_html_node(child))
             node.children = html_children
         else:
-            child = TextNode(trimmed_block, TextType.CODE)
+            child = TextNode(block, TextType.CODE)
             node.children = [text_node_to_html_node(child)]
         block_nodes.append(node)
     return ParentNode("div", block_nodes)

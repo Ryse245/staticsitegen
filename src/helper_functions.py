@@ -3,6 +3,8 @@ import os
 import shutil
 from textnode import TextNode
 from textnode import TextType
+from markdown import trim_markdown_block_specifiers
+from markdown import BlockType
 
 def split_nodes_delimiter(old_nodes: list[TextNode], delimiter, text_type):
     result_nodes = []
@@ -69,8 +71,6 @@ def split_nodes_link(old_nodes: list[TextNode]):
     
 def text_to_textnodes(text: str):
     final_text = text.strip()
-    final_text = final_text.strip("\n")
-    final_text = final_text.replace("\n", " ")
 
     new_nodes = [TextNode(final_text, TextType.TEXT)]
     new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
@@ -100,3 +100,11 @@ def copy_directory_rec(current_path, source, destination):
             dest_path = os.path.join(destination, rel_path)
             os.makedirs(dest_path, 511, True)
             shutil.copy(current_item, dest_path)
+
+def extract_title(markdown: str):
+    lines = markdown.split("\n")
+    start = lines[0]
+    start = start.strip()
+    if start[0] != "#":
+        raise Exception("No header found in markdown")
+    return trim_markdown_block_specifiers(start, BlockType.HEADING)

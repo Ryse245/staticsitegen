@@ -7,6 +7,7 @@ class TextType(Enum):
     CODE = 3
     LINK = 4
     IMAGE = 5
+    LIST = 6
 
 class TextNode:
     def __init__(self, text: str, text_type, url=None):

@@ -7,6 +7,7 @@ from helper_functions import extract_markdown_links
 from helper_functions import split_nodes_image
 from helper_functions import split_nodes_link
 from helper_functions import text_to_textnodes
+from helper_functions import extract_title
 
 from markdown import BlockType
 from markdown import markdown_to_blocks
@@ -257,6 +258,14 @@ This is the same paragraph on a new line
         3. lines"""
         type = block_to_blocktype(md)
         self.assertEqual(type, BlockType.PARAGRAPH)
+
+    def test_extract_title(self):
+        md = """### Title
+        and
+        other stuff
+        """
+        title = extract_title(md)
+        self.assertEqual(title, "Title")
 
 
 
