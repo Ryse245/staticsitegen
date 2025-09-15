@@ -107,7 +107,7 @@ def markdown_to_html_node(markdown):
                 children = text_to_textnodes(line)
                 for child in children:
                     if len(child.text.strip()) != 0:
-                        if type == BlockType.UNORDERED_LIST or type == BlockType.ORDERED_LIST:
+                        if type == BlockType.UNORDERED_LIST or type == BlockType.ORDERED_LIST:  #We probably just need to make a function that goes here and makes a parent with special considerations to make lists with inline stuff work
                             html_children.append(ParentNode("li",[text_node_to_html_node(child)]))
                         else:
                             html_children.append(text_node_to_html_node(child))
