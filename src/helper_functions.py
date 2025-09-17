@@ -101,6 +101,20 @@ def copy_directory_rec(current_path, source, destination):
             os.makedirs(dest_path, 511, True)
             shutil.copy(current_item, dest_path)
 
+def create_directory_layout(source, destination):
+    abs_source = os.path.abspath(source)
+    abs_dest = os.path.abspath(destination)
+    create_directory_layout_rec(abs_source, abs_source, abs_dest)
+
+def create_directory_layout_rec(current, source, destination):
+    for item in os.listdir(current):
+        current_item = os.path.join(current, item)
+        if os.path.isdir(current_item):
+            rel_path = os.path.relpath(current, source)
+            dest_path = os.path.join(destination, rel_path)
+            os.makedirs(dest_path, 511, True)
+            create_directory_layout_rec(current_item, source, destination)
+
 def extract_title(markdown: str):
     lines = markdown.split("\n")
     start = lines[0]
