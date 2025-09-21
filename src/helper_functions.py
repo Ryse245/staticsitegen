@@ -85,7 +85,8 @@ def copy_directory(source, destination):
     abs_dest = os.path.abspath(destination)
     if not os.path.exists(abs_source):
         raise Exception("Directory not found")
-    shutil.rmtree(abs_dest)
+    if os.path.exists(abs_dest):
+        shutil.rmtree(abs_dest)
     os.mkdir(abs_dest)
     copy_directory_rec(abs_source, abs_source, abs_dest)
 
